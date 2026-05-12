@@ -21,9 +21,12 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
 const authRoutes = require("./routes/authRoutes")
+const playerRoutes = require("./routes/playerRoutes")
 
 app.use("/api/auth", authRoutes)
+app.use("/api/players", playerRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
