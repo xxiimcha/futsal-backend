@@ -7,6 +7,11 @@ const playerSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    position: {
+      type: String,
+      enum: ["Pivot", "Ala", "Fixo", "Goalkeeper"],
+      default: "Pivot"
+    },
     fullName: {
       type: String,
       required: true,
