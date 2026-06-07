@@ -19,6 +19,16 @@ const coachSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    emailVerificationToken: {
+      type: String
+    },
+    emailVerificationExpire: {
+      type: Date
+    },
     resetPasswordToken: {
       type: String
     },

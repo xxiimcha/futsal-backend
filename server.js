@@ -25,10 +25,12 @@ const PORT = process.env.PORT || 5000;
 const authRoutes = require("./routes/authRoutes")
 const playerRoutes = require("./routes/playerRoutes")
 const progressRoutes = require("./routes/progressRoutes")
+const vrAuthRoutes = require("./routes/vrAuthRoutes")
 
 app.use("/api/auth", authRoutes)
 app.use("/api/players", playerRoutes)
 app.use("/api/progress", progressRoutes)
+app.use("/api/vr/auth", vrAuthRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

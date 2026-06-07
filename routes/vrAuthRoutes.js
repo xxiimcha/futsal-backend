@@ -4,9 +4,9 @@ const Player = require("../models/Player")
 
 router.post("/login", async (req, res) => {
   try {
-    const { playerId } = req.body
+    const { studentId } = req.body
 
-    if (!playerId) {
+    if (!studentId) {
       return res.status(400).json({
         success: false,
         message: "Player ID is required"
@@ -14,18 +14,13 @@ router.post("/login", async (req, res) => {
     }
 
     const player = await Player.findOne({
-      $or: [
-        { playerId: playerId },
-        { playerID: playerId },
-        { studentId: playerId },
-        { _id: playerId.match(/^[0-9a-fA-F]{24}$/) ? playerId : null }
-      ]
-    })
+      studentId: studentId.trim()
+    }).populate("coach", "fullName email")
 
     if (!player) {
       return res.status(404).json({
         success: false,
-        message: "Player ID not found"
+        message: "Player not found"
       })
     }
 
@@ -33,17 +28,17 @@ router.post("/login", async (req, res) => {
       success: true,
       message: "Login successful",
       player: {
-        id: player._id,
-        playerId: player.playerId || player.playerID || player.studentId || player._id,
-        name: player.name || player.fullName || `${player.firstName || ""} ${player.lastName || ""}`.trim(),
-        coach: player.coach || null
+        id: player._id.toString(),
+        studentId: player.studentId,
+        fullName: player.fullName,
+        team: player.team,
+        position: player.position
       }
     })
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Server error",
-      error: error.message
+      message: "Server error"
     })
   }
 })
