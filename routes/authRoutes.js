@@ -8,7 +8,13 @@ const router = express.Router()
 
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
@@ -89,27 +95,48 @@ router.post("/register", async (req, res) => {
 
     const transporter = createTransporter()
 
-    await transporter.sendMail({
-      from: `"Futsal VR Dashboard" <${process.env.EMAIL_USER}>`,
-      to: coach.email,
-      subject: "Verify Your Coach Account",
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>Verify Your Email</h2>
-          <p>Hello ${coach.fullName},</p>
-          <p>Thank you for registering your Futsal VR Dashboard coach account.</p>
-          <p>Click the button below to verify your email address:</p>
-          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 18px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px;">
-            Verify Email
-          </a>
-          <p>This link will expire in 24 hours.</p>
-          <p>If the button does not work, copy and paste this link into your browser:</p>
-          <p>${verificationUrl}</p>
-        </div>
-      `
-    })
+    try {
+      console.log("SENDING VERIFICATION EMAIL TO:", coach.email)
 
-    console.log("REGISTER EMAIL SENT:", coach.email)
+      const mailInfo = await transporter.sendMail({
+        from: `"Futsal VR Dashboard" <${process.env.EMAIL_USER}>`,
+        to: coach.email,
+        subject: "Verify Your Coach Account",
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Verify Your Email</h2>
+            <p>Hello ${coach.fullName},</p>
+            <p>Thank you for registering your Futsal VR Dashboard coach account.</p>
+            <p>Click the button below to verify your email address:</p>
+            <a href="${verificationUrl}" style="display: inline-block; padding: 12px 18px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px;">
+              Verify Email
+            </a>
+            <p>This link will expire in 24 hours.</p>
+            <p>If the button does not work, copy and paste this link into your browser:</p>
+            <p>${verificationUrl}</p>
+          </div>
+        `
+      })
+
+      console.log("REGISTER EMAIL SENT:", {
+        to: coach.email,
+        messageId: mailInfo.messageId,
+        accepted: mailInfo.accepted,
+        rejected: mailInfo.rejected
+      })
+    } catch (emailError) {
+      console.error("REGISTER EMAIL FAILED:", {
+        message: emailError.message,
+        code: emailError.code,
+        command: emailError.command,
+        response: emailError.response
+      })
+
+      return res.status(500).json({
+        message: "Account was created but verification email failed to send",
+        error: emailError.message
+      })
+    }
 
     res.status(201).json({
       message: "Account created successfully. Please check your email to verify your account.",
@@ -291,26 +318,47 @@ router.post("/forgot-password", async (req, res) => {
 
     const transporter = createTransporter()
 
-    await transporter.sendMail({
-      from: `"Futsal VR Dashboard" <${process.env.EMAIL_USER}>`,
-      to: coach.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>Reset Your Password</h2>
-          <p>You requested to reset your password for your Futsal VR Dashboard account.</p>
-          <p>Click the button below to create a new password:</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 12px 18px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px;">
-            Reset Password
-          </a>
-          <p>This link will expire in 15 minutes.</p>
-          <p>If the button does not work, copy and paste this link into your browser:</p>
-          <p>${resetUrl}</p>
-        </div>
-      `
-    })
+    try {
+      console.log("SENDING RESET EMAIL TO:", coach.email)
 
-    console.log("FORGOT PASSWORD EMAIL SENT:", coach.email)
+      const mailInfo = await transporter.sendMail({
+        from: `"Futsal VR Dashboard" <${process.env.EMAIL_USER}>`,
+        to: coach.email,
+        subject: "Password Reset Request",
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Reset Your Password</h2>
+            <p>You requested to reset your password for your Futsal VR Dashboard account.</p>
+            <p>Click the button below to create a new password:</p>
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 18px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px;">
+              Reset Password
+            </a>
+            <p>This link will expire in 15 minutes.</p>
+            <p>If the button does not work, copy and paste this link into your browser:</p>
+            <p>${resetUrl}</p>
+          </div>
+        `
+      })
+
+      console.log("FORGOT PASSWORD EMAIL SENT:", {
+        to: coach.email,
+        messageId: mailInfo.messageId,
+        accepted: mailInfo.accepted,
+        rejected: mailInfo.rejected
+      })
+    } catch (emailError) {
+      console.error("FORGOT PASSWORD EMAIL FAILED:", {
+        message: emailError.message,
+        code: emailError.code,
+        command: emailError.command,
+        response: emailError.response
+      })
+
+      return res.status(500).json({
+        message: "Password reset email failed to send",
+        error: emailError.message
+      })
+    }
 
     res.json({
       message: "Password reset link has been sent to your email"
